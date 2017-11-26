@@ -10,7 +10,7 @@ namespace Harmony
 		{
 			foreach (var instruction in instructions)
 			{
-				if (instruction.operand == from)
+				if ((MethodBase) instruction.operand == from)
 					instruction.operand = to;
 				yield return instruction;
 			}
