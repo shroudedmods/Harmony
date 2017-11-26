@@ -10,20 +10,14 @@ namespace Harmony.ILCopying
 	{
 		public static string CodePos(ILGenerator il)
 		{
-			var offset = Traverse.Create(il).Field("code_len").GetValue<int>();
-			return "L_" + offset.ToString("x4") + ": ";
+			return "L_" + il.ILOffset.ToString("x4") + ": ";
 		}
 
-		public static void LogLastLocalVariable(ILGenerator il)
+		public static void LogLastLocalVariable(ILGenerator il, LocalBuilder latestVar)
 		{
 			if (HarmonyInstance.DEBUG)
 			{
-				var existingLocals = Traverse.Create(il).Field("locals").GetValue<LocalBuilder[]>();
-				if (existingLocals.Length > 0)
-				{
-					var latestVar = existingLocals.Last();
-					FileLog.Log(CodePos(il) + "Local var #" + (existingLocals.Length - 1) + " " + latestVar.LocalType.FullName + (latestVar.IsPinned ? "(pinned)" : ""));
-				}
+    			FileLog.Log(CodePos(il) + "Local var #" + (latestVar.LocalIndex) + " " + latestVar.LocalType.FullName + (latestVar.IsPinned ? "(pinned)" : ""));
 			}
 		}
 

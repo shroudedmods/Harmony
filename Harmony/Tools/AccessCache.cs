@@ -13,42 +13,34 @@ namespace Harmony
 
 		public FieldInfo GetFieldInfo(Type type, string name)
 		{
-			Dictionary<string, FieldInfo> fieldsByType = null;
-			fields.TryGetValue(type, out fieldsByType);
-			if (fieldsByType == null)
+            if (!fields.TryGetValue(type, out Dictionary<string, FieldInfo> fieldsByType))
 			{
 				fieldsByType = new Dictionary<string, FieldInfo>();
 				fields.Add(type, fieldsByType);
 			}
 
-			FieldInfo field = null;
-			fieldsByType.TryGetValue(name, out field);
-			if (field == null)
-			{
-				field = AccessTools.Field(type, name);
-				fieldsByType.Add(name, field);
-			}
-			return field;
+            if (!fieldsByType.TryGetValue(name, out FieldInfo field))
+            {
+                field = AccessTools.Field(type, name);
+                fieldsByType.Add(name, field);
+            }
+            return field;
 		}
 
 		public PropertyInfo GetPropertyInfo(Type type, string name)
 		{
-			Dictionary<string, PropertyInfo> propertiesByType = null;
-			properties.TryGetValue(type, out propertiesByType);
-			if (propertiesByType == null)
-			{
-				propertiesByType = new Dictionary<string, PropertyInfo>();
-				properties.Add(type, propertiesByType);
-			}
+            if (!properties.TryGetValue(type, out Dictionary<string, PropertyInfo> propertiesByType))
+            {
+                propertiesByType = new Dictionary<string, PropertyInfo>();
+                properties.Add(type, propertiesByType);
+            }
 
-			PropertyInfo property = null;
-			propertiesByType.TryGetValue(name, out property);
-			if (property == null)
-			{
-				property = AccessTools.Property(type, name);
-				propertiesByType.Add(name, property);
-			}
-			return property;
+            if (!propertiesByType.TryGetValue(name, out PropertyInfo property))
+            {
+                property = AccessTools.Property(type, name);
+                propertiesByType.Add(name, property);
+            }
+            return property;
 		}
 
 		static int CombinedHashCode(IEnumerable<object> objects)
@@ -69,26 +61,21 @@ namespace Harmony
 
 		public MethodBase GetMethodInfo(Type type, string name, Type[] arguments)
 		{
-			Dictionary<string, Dictionary<int, MethodBase>> methodsByName = null;
-			methods.TryGetValue(type, out methodsByName);
-			if (methodsByName == null)
-			{
-				methodsByName = new Dictionary<string, Dictionary<int, MethodBase>>();
-				methods.Add(type, methodsByName);
-			}
+            if (!methods.TryGetValue(type, out Dictionary<string, Dictionary<int, MethodBase>> methodsByName))
+            {
+                methodsByName = new Dictionary<string, Dictionary<int, MethodBase>>();
+                methods.Add(type, methodsByName);
+            }
 
-			Dictionary<int, MethodBase> methodsByArguments = null;
-			methodsByName.TryGetValue(name, out methodsByArguments);
-			if (methodsByArguments == null)
-			{
-				methodsByArguments = new Dictionary<int, MethodBase>();
-				methodsByName.Add(name, methodsByArguments);
-			}
+            if (!methodsByName.TryGetValue(name, out Dictionary<int, MethodBase> methodsByArguments))
+            {
+                methodsByArguments = new Dictionary<int, MethodBase>();
+                methodsByName.Add(name, methodsByArguments);
+            }
 
-			MethodBase method = null;
-			var argumentsHash = CombinedHashCode(arguments);
-			methodsByArguments.TryGetValue(argumentsHash, out method);
-			if (method == null)
+            var argumentsHash = CombinedHashCode(arguments);
+
+			if (!methodsByArguments.TryGetValue(argumentsHash, out MethodBase method))
 			{
 				method = AccessTools.Method(type, name, arguments);
 				methodsByArguments.Add(argumentsHash, method);
