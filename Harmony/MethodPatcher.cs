@@ -176,7 +176,8 @@ namespace Harmony
 					canHaveJump = true;
 				}
 			});
-			return canHaveJump;
+
+            return canHaveJump;
 		}
 
 		static void AddPostfixes(ILGenerator il, MethodBase original, List<MethodInfo> postfixes, Dictionary<string, LocalBuilder> variables)

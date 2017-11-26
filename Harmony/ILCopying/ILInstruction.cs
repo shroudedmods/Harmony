@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 
 namespace Harmony.ILCopying
@@ -9,22 +10,27 @@ namespace Harmony.ILCopying
 		public OpCode opcode;
 		public object operand;
 		public object argument;
-
-		public List<Label> labels = new List<Label>();
+        
+        private Label? label;
 
 		public ILInstruction(OpCode opcode, object operand = null)
 		{
 			this.opcode = opcode;
 			this.operand = operand;
-			this.argument = operand;
+            this.argument = operand;
 		}
+
+        public Label GetLabel(ILGenerator il)
+        {
+            return (label ?? (label = il.DefineLabel())).Value;
+        }
 
 		public CodeInstruction GetCodeInstruction()
 		{
 			var instr = new CodeInstruction(opcode, argument);
 			if (opcode.OperandType == OperandType.InlineNone)
 				instr.operand = null;
-			instr.labels = labels;
+			instr.label = label;
 			return instr;
 		}
 

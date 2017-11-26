@@ -8,7 +8,7 @@ namespace Harmony
 	{
 		public OpCode opcode;
 		public object operand;
-		public List<Label> labels = new List<Label>();
+        public Label? label;
 
 		public CodeInstruction(OpCode opcode, object operand = null)
 		{
@@ -20,7 +20,7 @@ namespace Harmony
 		{
 			opcode = instruction.opcode;
 			operand = instruction.operand;
-			labels = instruction.labels.ToArray().ToList();
+            label = instruction.label;
 		}
 
 		public override string ToString()

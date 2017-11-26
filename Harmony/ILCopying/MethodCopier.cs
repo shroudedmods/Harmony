@@ -122,8 +122,11 @@ namespace Harmony.ILCopying
 					case OperandType.InlineSwitch:
 						var offsets = (int[])instruction.operand;
 						var branches = new ILInstruction[offsets.Length];
-						for (int j = 0; j < offsets.Length; j++)
-							branches[j] = GetInstruction(offsets[j]);
+
+                        for (int j = 0; j < offsets.Length; j++)
+                        {
+                            branches[j] = GetInstruction(offsets[j]);
+                        }
 
 						instruction.operand = branches;
 						break;
@@ -162,9 +165,7 @@ namespace Harmony.ILCopying
 								var labels = new List<Label>();
 								foreach (var target in targets)
 								{
-									var label = generator.DefineLabel();
-									target.labels.Add(label);
-									labels.Add(label);
+                                    labels.Add(target.GetLabel(generator));
 								}
 								ilInstruction.argument = labels.ToArray();
 							}
@@ -175,11 +176,10 @@ namespace Harmony.ILCopying
 					case OperandType.InlineBrTarget:
 						{
 							var target = ilInstruction.operand as ILInstruction;
+
 							if (target != null)
 							{
-								var label = generator.DefineLabel();
-								target.labels.Add(label);
-								ilInstruction.argument = label;
+								ilInstruction.argument = target.GetLabel(generator);
 							}
 							break;
 						}
@@ -226,8 +226,11 @@ namespace Harmony.ILCopying
 
 			// pass3 - mark labels and emit codes
 			codeInstructions.Do(codeInstruction =>
-			{
-				codeInstruction.labels.ForEach(label => Emitter.MarkLabel(generator, label));
+            {
+                if (codeInstruction.label != null)
+                {
+                    Emitter.MarkLabel(generator, codeInstruction.label.Value);
+                }
 
 				var code = codeInstruction.opcode;
 				var operand = codeInstruction.operand;
