@@ -123,10 +123,10 @@ namespace Harmony.ILCopying
 						var offsets = (int[])instruction.operand;
 						var branches = new ILInstruction[offsets.Length];
 
-                        for (int j = 0; j < offsets.Length; j++)
-                        {
-                            branches[j] = GetInstruction(offsets[j]);
-                        }
+						for (int j = 0; j < offsets.Length; j++)
+						{
+							branches[j] = GetInstruction(offsets[j]);
+						}
 
 						instruction.operand = branches;
 						break;
@@ -165,7 +165,7 @@ namespace Harmony.ILCopying
 								var labels = new List<Label>();
 								foreach (var target in targets)
 								{
-                                    labels.Add(target.GetLabel(generator));
+									labels.Add(target.GetLabel(generator));
 								}
 								ilInstruction.argument = labels.ToArray();
 							}
@@ -226,11 +226,11 @@ namespace Harmony.ILCopying
 
 			// pass3 - mark labels and emit codes
 			codeInstructions.Do(codeInstruction =>
-            {
-                if (codeInstruction.label != null)
-                {
-                    Emitter.MarkLabel(generator, codeInstruction.label.Value);
-                }
+			{
+				if (codeInstruction.label != null)
+				{
+					Emitter.MarkLabel(generator, codeInstruction.label.Value);
+				}
 
 				var code = codeInstruction.opcode;
 				var operand = codeInstruction.operand;

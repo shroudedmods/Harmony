@@ -13,34 +13,34 @@ namespace Harmony
 
 		public FieldInfo GetFieldInfo(Type type, string name)
 		{
-            if (!fields.TryGetValue(type, out Dictionary<string, FieldInfo> fieldsByType))
+			if (!fields.TryGetValue(type, out Dictionary<string, FieldInfo> fieldsByType))
 			{
 				fieldsByType = new Dictionary<string, FieldInfo>();
 				fields.Add(type, fieldsByType);
 			}
 
-            if (!fieldsByType.TryGetValue(name, out FieldInfo field))
-            {
-                field = AccessTools.Field(type, name);
-                fieldsByType.Add(name, field);
-            }
-            return field;
+			if (!fieldsByType.TryGetValue(name, out FieldInfo field))
+			{
+				field = AccessTools.Field(type, name);
+				fieldsByType.Add(name, field);
+			}
+			return field;
 		}
 
 		public PropertyInfo GetPropertyInfo(Type type, string name)
 		{
-            if (!properties.TryGetValue(type, out Dictionary<string, PropertyInfo> propertiesByType))
-            {
-                propertiesByType = new Dictionary<string, PropertyInfo>();
-                properties.Add(type, propertiesByType);
-            }
+			if (!properties.TryGetValue(type, out Dictionary<string, PropertyInfo> propertiesByType))
+			{
+				propertiesByType = new Dictionary<string, PropertyInfo>();
+				properties.Add(type, propertiesByType);
+			}
 
-            if (!propertiesByType.TryGetValue(name, out PropertyInfo property))
-            {
-                property = AccessTools.Property(type, name);
-                propertiesByType.Add(name, property);
-            }
-            return property;
+			if (!propertiesByType.TryGetValue(name, out PropertyInfo property))
+			{
+				property = AccessTools.Property(type, name);
+				propertiesByType.Add(name, property);
+			}
+			return property;
 		}
 
 		static int CombinedHashCode(IEnumerable<object> objects)
@@ -61,19 +61,19 @@ namespace Harmony
 
 		public MethodBase GetMethodInfo(Type type, string name, Type[] arguments)
 		{
-            if (!methods.TryGetValue(type, out Dictionary<string, Dictionary<int, MethodBase>> methodsByName))
-            {
-                methodsByName = new Dictionary<string, Dictionary<int, MethodBase>>();
-                methods.Add(type, methodsByName);
-            }
+			if (!methods.TryGetValue(type, out Dictionary<string, Dictionary<int, MethodBase>> methodsByName))
+			{
+				methodsByName = new Dictionary<string, Dictionary<int, MethodBase>>();
+				methods.Add(type, methodsByName);
+			}
 
-            if (!methodsByName.TryGetValue(name, out Dictionary<int, MethodBase> methodsByArguments))
-            {
-                methodsByArguments = new Dictionary<int, MethodBase>();
-                methodsByName.Add(name, methodsByArguments);
-            }
+			if (!methodsByName.TryGetValue(name, out Dictionary<int, MethodBase> methodsByArguments))
+			{
+				methodsByArguments = new Dictionary<int, MethodBase>();
+				methodsByName.Add(name, methodsByArguments);
+			}
 
-            var argumentsHash = CombinedHashCode(arguments);
+			var argumentsHash = CombinedHashCode(arguments);
 
 			if (!methodsByArguments.TryGetValue(argumentsHash, out MethodBase method))
 			{

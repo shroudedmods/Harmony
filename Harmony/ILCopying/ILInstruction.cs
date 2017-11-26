@@ -10,20 +10,20 @@ namespace Harmony.ILCopying
 		public OpCode opcode;
 		public object operand;
 		public object argument;
-        
-        private Label? label;
+
+		private Label? label;
 
 		public ILInstruction(OpCode opcode, object operand = null)
 		{
 			this.opcode = opcode;
 			this.operand = operand;
-            this.argument = operand;
+			this.argument = operand;
 		}
 
-        public Label GetLabel(ILGenerator il)
-        {
-            return (label ?? (label = il.DefineLabel())).Value;
-        }
+		public Label GetLabel(ILGenerator il)
+		{
+			return (label ?? (label = il.DefineLabel())).Value;
+		}
 
 		public CodeInstruction GetCodeInstruction()
 		{

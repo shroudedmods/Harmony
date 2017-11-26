@@ -17,7 +17,7 @@ namespace Harmony.ILCopying
 		{
 			if (HarmonyInstance.DEBUG)
 			{
-    			FileLog.Log(CodePos(il) + "Local var #" + (latestVar.LocalIndex) + " " + latestVar.LocalType.FullName + (latestVar.IsPinned ? "(pinned)" : ""));
+				FileLog.Log(CodePos(il) + "Local var #" + (latestVar.LocalIndex) + " " + latestVar.LocalType.FullName + (latestVar.IsPinned ? "(pinned)" : ""));
 			}
 		}
 
