@@ -56,6 +56,11 @@ namespace Harmony
 			var sortedPostfixes = GetSortedPatchMethods(original, patchInfo.postfixes);
 			var sortedTranspilers = GetSortedPatchMethods(original, patchInfo.transpilers);
 
+			if (HarmonyInstance.DEBUG)
+			{
+				//MethodPatcher.SavePatchedMethod(original, sortedPrefixes, sortedPostfixes, sortedTranspilers);
+			}
+
 			var replacement = MethodPatcher.CreatePatchedMethod(original, sortedPrefixes, sortedPostfixes, sortedTranspilers);
 			if (replacement == null) throw new MissingMethodException("Cannot create dynamic replacement for " + original);
 

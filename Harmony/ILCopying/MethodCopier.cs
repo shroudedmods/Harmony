@@ -12,10 +12,9 @@ namespace Harmony.ILCopying
 		readonly MethodBodyReader reader;
 		readonly List<MethodInfo> transpilers = new List<MethodInfo>();
 
-		public MethodCopier(MethodBase fromMethod, DynamicMethod toDynamicMethod, LocalBuilder[] existingVariables = null)
+		public MethodCopier(MethodBase fromMethod, ILGenerator generator, LocalBuilder[] existingVariables = null)
 		{
 			if (fromMethod == null) throw new Exception("method cannot be null");
-			var generator = toDynamicMethod.GetILGenerator();
 			reader = new MethodBodyReader(fromMethod, generator);
 			reader.DeclareVariables(existingVariables);
 			reader.ReadInstructions();
@@ -106,6 +105,7 @@ namespace Harmony.ILCopying
 			}
 
 			ResolveBranches();
+			ParseExceptions();
 		}
 
 		void ResolveBranches()
@@ -209,7 +209,8 @@ namespace Harmony.ILCopying
 						{ OpCodes.Bne_Un_S, OpCodes.Bne_Un },
 						{ OpCodes.Brfalse_S, OpCodes.Brfalse },
 						{ OpCodes.Brtrue_S, OpCodes.Brtrue },
-						{ OpCodes.Br_S, OpCodes.Br }
+						{ OpCodes.Br_S, OpCodes.Br },
+						{ OpCodes.Leave_S, OpCodes.Leave }
 					}.Do(pair =>
 					{
 						if (instruction.opcode == pair.Key)
@@ -227,6 +228,8 @@ namespace Harmony.ILCopying
 			// pass3 - mark labels and emit codes
 			codeInstructions.Do(codeInstruction =>
 			{
+				Emitter.EmitExceptionBlock(generator, codeInstruction);
+
 				if (codeInstruction.label != null)
 				{
 					Emitter.MarkLabel(generator, codeInstruction.label.Value);
@@ -471,27 +474,49 @@ namespace Harmony.ILCopying
 		{
 			foreach (var ehc in exceptions)
 			{
-				//Log.Error("ExceptionHandlingClause, flags " + ehc.Flags.ToString());
+				FileLog.Log("ExceptionHandlingClause, flags " + ehc.Flags.ToString());
+
+				ILInstruction start = GetInstruction(ehc.TryOffset);
+				start.startException += 1;
+
+				ILInstruction tryEnd = GetInstruction(ehc.TryOffset + ehc.TryLength);
+
+				ILInstruction handlerStart = GetInstruction(ehc.HandlerOffset);
+				ILInstruction handlerEnd = GetInstruction(ehc.HandlerOffset + ehc.HandlerLength);
+				handlerEnd.endException += 1;
 
 				// The FilterOffset property is meaningful only for Filter
 				// clauses. The CatchType property is not meaningful for 
 				// Filter or Finally clauses. 
 				switch (ehc.Flags)
 				{
+					case ExceptionHandlingClauseOptions.Clause:
+						handlerStart.catchType = ehc.CatchType;
+						handlerStart.isStartCatch = true;
+						break;
 					case ExceptionHandlingClauseOptions.Filter:
-						//Log.Error("    Filter Offset: " + ehc.FilterOffset);
+						FileLog.Log("    Filter Offset: " + ehc.FilterOffset);
+						handlerStart.isStartFilter = true;
 						break;
 					case ExceptionHandlingClauseOptions.Finally:
+						handlerStart.isStartFinally = true;
 						break;
-						//default:
-						//Log.Error("Type of exception: " + ehc.CatchType);
+					default:
+						FileLog.Log("Type of exception: " + ehc.CatchType);
 						//break;
+						break;
+
 				}
 
-				//Log.Error("   Handler Length: " + ehc.HandlerLength);
-				//Log.Error("   Handler Offset: " + ehc.HandlerOffset);
-				//Log.Error(" Try Block Length: " + ehc.TryLength);
-				//Log.Error(" Try Block Offset: " + ehc.TryOffset);
+				FileLog.Log("   Handler Start IL: " + handlerStart.ToString());
+				FileLog.Log("   Handler End IL: " + handlerEnd.ToString());
+				FileLog.Log("   Handler Length: " + ehc.HandlerLength);
+				FileLog.Log("   Handler Offset: " + ehc.HandlerOffset);
+
+				FileLog.Log(" Try Start IL:" + start.ToString());
+				FileLog.Log(" Try End IL:" + tryEnd.ToString());
+				FileLog.Log(" Try Block Length: " + ehc.TryLength);
+				FileLog.Log(" Try Block Offset: " + ehc.TryOffset);
 			}
 		}
 

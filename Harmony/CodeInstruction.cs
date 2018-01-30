@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 
@@ -9,6 +10,13 @@ namespace Harmony
 		public OpCode opcode;
 		public object operand;
 		public Label? label;
+
+		public int startException = 0;
+		public int endException = 0;
+		public Type catchType = null;
+		public bool isStartCatch;
+		public bool isStartFinally;
+		public bool isStartFilter;
 
 		public CodeInstruction(OpCode opcode, object operand = null)
 		{

@@ -182,5 +182,55 @@ namespace Harmony.ILCopying
 			il.EmitWriteLine(fld);
 		}
 
+		internal static void EmitExceptionBlock(ILGenerator il, CodeInstruction ci)
+		{
+			if (ci.startException > 0)
+			{
+				for (int i = 0; i < ci.startException; i++)
+				{
+					if (HarmonyInstance.DEBUG) FileLog.Log("try {\n");
+					il.BeginExceptionBlock();
+				}
+			}
+
+			if (ci.endException > 0)
+			{
+				for (int i = 0; i < ci.endException; i++)
+				{
+					if (HarmonyInstance.DEBUG) FileLog.Log("}\n");
+					il.EndExceptionBlock();
+				}
+			}
+
+			if (ci.isStartCatch)
+			{
+				if (HarmonyInstance.DEBUG)
+				{
+					FileLog.Log("} // try");
+
+					String catchLog = "catch ";
+
+					if (ci.catchType != null)
+					{
+						catchLog += "(" + ci.catchType.ToString() + ")";
+					}
+
+					FileLog.Log(catchLog + " {");
+				}
+
+				il.BeginCatchBlock(ci.catchType);
+	
+			}
+			else if (ci.isStartFinally)
+			{
+				if (HarmonyInstance.DEBUG)
+				{
+					FileLog.Log("} // try");
+					FileLog.Log("finally { ");
+				}
+
+				il.BeginFinallyBlock();
+			}
+		}
 	}
 }

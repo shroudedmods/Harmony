@@ -13,6 +13,13 @@ namespace Harmony.ILCopying
 
 		private Label? label;
 
+		public int startException = 0;
+		public int endException = 0;
+		public Type catchType = null;
+		public bool isStartCatch;
+		public bool isStartFinally;
+		public bool isStartFilter;
+
 		public ILInstruction(OpCode opcode, object operand = null)
 		{
 			this.opcode = opcode;
@@ -31,6 +38,11 @@ namespace Harmony.ILCopying
 			if (opcode.OperandType == OperandType.InlineNone)
 				instr.operand = null;
 			instr.label = label;
+			instr.catchType = this.catchType;
+			instr.startException = this.startException;
+			instr.endException = this.endException;
+			instr.isStartCatch = this.isStartCatch;
+			instr.isStartFinally = this.isStartFinally;
 			return instr;
 		}
 

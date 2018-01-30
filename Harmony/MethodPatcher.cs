@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 
 namespace Harmony
 {
@@ -15,6 +16,49 @@ namespace Harmony
 		public static string RESULT_VAR = "__result";
 		public static string STATE_VAR = "__state";
 
+		public static void SavePatchedMethod(MethodBase original, List<MethodInfo> prefixes, List<MethodInfo> postfixes, List<MethodInfo> transpilers)
+		{
+			var asmName = new AssemblyName("HarmonyDebug");
+			var domain = Thread.GetDomain();
+			var assembly = domain.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.RunAndSave, "X:\\");
+			var module = assembly.DefineDynamicModule("Harmony", "HarmonyDebug.dll", true);
+			var type = module.DefineType("HarmonyOutput");
+
+			var patchName = original.Name + "_patched";
+			patchName = patchName.Replace("<>", "");
+
+			var parameters = original.GetParameters();
+			var result = parameters.Types().ToList();
+			if (original.IsStatic == false)
+				result.Insert(0, typeof(object));
+			var paramTypes = result.ToArray();
+
+			var method = type.DefineMethod(
+				patchName,
+				MethodAttributes.Public | MethodAttributes.Static,
+				CallingConventions.Standard,
+				AccessTools.GetReturnedType(original),
+				paramTypes
+			);
+
+			for (int i = 0; i < parameters.Length; i++)
+				method.DefineParameter(i + 1, parameters[i].Attributes, parameters[i].Name);
+
+			var il = method.GetILGenerator();
+	
+			GenerateDynamicMethod(
+				original,
+				prefixes,
+				postfixes,
+				transpilers,
+				il,
+				prefixes.Count() + postfixes.Count()
+			);
+
+			type.CreateType();
+			assembly.Save("HarmonyDebug.dll");
+		}
+
 		public static DynamicMethod CreatePatchedMethod(MethodBase original, List<MethodInfo> prefixes, List<MethodInfo> postfixes, List<MethodInfo> transpilers)
 		{
 			if (HarmonyInstance.DEBUG) FileLog.Log("PATCHING " + original.DeclaringType + " " + original);
@@ -23,6 +67,28 @@ namespace Harmony
 			var patch = DynamicTools.CreateDynamicMethod(original, "_Patch" + idx);
 			var il = patch.GetILGenerator();
 
+			GenerateDynamicMethod(
+				original,
+				prefixes,
+				postfixes,
+				transpilers,
+				il,
+				idx
+			);
+
+			if (HarmonyInstance.DEBUG)
+			{
+				FileLog.Log("DONE");
+				FileLog.Log("");
+			}
+
+			DynamicTools.PrepareDynamicMethod(patch);
+
+			return patch;
+		}
+
+		static void GenerateDynamicMethod(MethodBase original, List<MethodInfo> prefixes, List<MethodInfo> postfixes, List<MethodInfo> transpilers, ILGenerator il, int idx)
+		{
 			var originalVariables = DynamicTools.DeclareLocalVariables(original, il);
 			var privateVars = new Dictionary<string, LocalBuilder>();
 
@@ -48,7 +114,7 @@ namespace Harmony
 			var afterOriginal2 = il.DefineLabel();
 			var canHaveJump = AddPrefixes(il, original, prefixes, privateVars, afterOriginal2);
 
-			var copier = new MethodCopier(original, patch, originalVariables);
+			var copier = new MethodCopier(original, il, originalVariables);
 			foreach (var transpiler in transpilers)
 				copier.AddTranspiler(transpiler);
 			copier.Emit(afterOriginal1);
@@ -63,15 +129,6 @@ namespace Harmony
 			if (resultVariable != null)
 				Emitter.Emit(il, OpCodes.Ldloc, resultVariable);
 			Emitter.Emit(il, OpCodes.Ret);
-
-			if (HarmonyInstance.DEBUG)
-			{
-				FileLog.Log("DONE");
-				FileLog.Log("");
-			}
-
-			DynamicTools.PrepareDynamicMethod(patch);
-			return patch;
 		}
 
 		static OpCode LoadIndOpCodeFor(Type type)
